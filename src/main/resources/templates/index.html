@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>shopping list</title>
+    <script>
+        function newItem(text, model){
+            const root = document.createElement("div");
+            const label = document.createElement("b");
+            label.innerText = text;
+            const updButton = document.createElement("button");
+            updButton.id = "upd_" + model.id;
+            updButton.innerText = "Update";
+            updButton.addEventListener("click", () => upd(updButton), false);
+            const delButton = document.createElement("button");
+            delButton.id = "del_" + model.id;
+            delButton.innerText = "Remove";
+            delButton.addEventListener("click", () => del(delButton), false);
+            root.appendChild(label);
+            root.appendChild(updButton);
+            root.appendChild(delButton);
+
+            document.body.appendChild(root);
+        }
+
+        function upd(button) {
+            const btn = button;
+            const label = button.parentElement.childNodes[0];
+            const id = btn.id.split("upd_")[1];
+            $.ajax({
+                url: '/' + id,
+                type: 'PUT',
+                success:
+                    function (data) {
+                    const state = data.state;
+                    if (state === true) {
+                        label.innerText = "[DONE] " + label.innerText;
+                    } else {
+                        label.innerText = label.innerText.split("[DONE] ")[1];
+                    }
+                }
+            });
+        }
+
+        function del(button) {
+            const btn = button;
+            const id = btn.id.split("del_")[1];
+            $.ajax({
+                url: '/' + id,
+                type: 'DELETE',
+                success: function () {
+                    btn.parentElement.remove()
+                }
+            });
+        }
+
+        window.onload = function (){
+            const btn = document.getElementById("add");
+            btn.addEventListener("click", function (){
+                const label = document.getElementById("label");
+                const text = label.value;
+                $.ajax({
+                    url: '/?label=' + text,
+                    type: 'POST',
+                    success:function (data){
+                        const text = data.label;
+                        newItem(text, data);
+                    }
+                })
+            }, false)
+        };
+    </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+    <h1>Shopping todos:</h1>
+    <input id="label" type="text" placeholder="Write a new entry...">
+    <button id="add">add</button>
+</body>
+</html>
